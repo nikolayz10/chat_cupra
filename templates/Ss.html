@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CUPRA Assistant - Chatbot Inteligente</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2c2c2c 100%);
+            height: 100vh;
+            color: #ffffff;
+            overflow: hidden;
+        }
+
+        .chat-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: #ffffff;
+            box-shadow: 0 0 50px rgba(212, 175, 55, 0.2);
+        }
+
+        .chat-header {
+            background: linear-gradient(135deg, #2c2c2c 0%, #1a1a1a 100%);
+            padding: 25px;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            position: relative;
+            border-bottom: 3px solid #d4af37;
+        }
+
+        .chat-header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: #d4af37;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .cupra-logo {
+            width: 100px;
+            height: 100px;
+            background-image: url('/static/images/logo_cupra.png');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            border-radius: 8px;
+        }
+
+        .chat-header p {
+            opacity: 0.9;
+            font-size: 16px;
+            color: #cccccc;
+            font-weight: 300;
+        }
+
+        .status-indicator {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            color: #cccccc;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #00ff00;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 30px;
+            background: #fafafa;
+            scroll-behavior: smooth;
+        }
+
+        .message {
+            margin-bottom: 25px;
+            animation: fadeInUp 0.4s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.user {
+            text-align: right;
+        }
+
+        .message.bot {
+            text-align: left;
+        }
+
+        .message-content {
+            display: inline-block;
+            max-width: 85%;
+            padding: 20px 25px;
+            border-radius: 25px;
+            word-wrap: break-word;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+            line-height: 1.6;
+            font-size: 15px;
+        }
+
+        .message.user .message-content {
+            background: linear-gradient(135deg, #d4af37, #b8941f);
+            border-bottom-right-radius: 8px;
+            color: #2c2c2c;
+            font-weight: 500;
+        }
+
+        .message.bot .message-content {
+            background: #ffffff;
+            border-bottom-left-radius: 8px;
+            border: 1px solid #e5e5e5;
+            color: #2c2c2c;
+            position: relative;
+        }
+
+        .message-metadata {
+            margin-top: 12px;
+            font-size: 12px;
+            opacity: 0.7;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .message.user .message-metadata {
+            justify-content: flex-end;
+        }
+
+        .confidence-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            background: rgba(212, 175, 55, 0.1);
+            color: #d4af37;
+            border: 1px solid rgba(212, 175, 55, 0.2);
+        }
+
+        .quality-score {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .quality-high { 
+            background: rgba(34, 197, 94, 0.1); 
+            color: #22c55e; 
+            border: 1px solid rgba(34, 197, 94, 0.2);
+        }
+        .quality-medium { 
+            background: rgba(251, 146, 60, 0.1); 
+            color: #fb923c; 
+            border: 1px solid rgba(251, 146, 60, 0.2);
+        }
+        .quality-low { 
+            background: rgba(239, 68, 68, 0.1); 
+            color: #ef4444; 
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+
+        .message-sources {
+            margin-top: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 15px;
+            font-size: 13px;
+            border-left: 4px solid #d4af37;
+        }
+
+        .sources-title {
+            font-weight: 600;
+            color: #2c2c2c;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .source-item {
+            margin: 8px 0;
+            padding: 10px 12px;
+            background: #ffffff;
+            border-radius: 10px;
+            border: 1px solid #e5e5e5;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.2s ease;
+        }
+
+        .source-item:hover {
+            border-color: #d4af37;
+            transform: translateX(3px);
+        }
+
+        .source-title {
+            font-weight: 500;
+            color: #374151;
+        }
+
+        .source-relevance {
+            background: rgba(212, 175, 55, 0.1);
+            color: #d4af37;
+            padding: 2px 8px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .chat-input-container {
+            padding: 25px 30px;
+            background: linear-gradient(135deg, #2c2c2c 0%, #1a1a1a 100%);
+            border-top: 1px solid rgba(212, 175, 55, 0.2);
+        }
+
+        .chat-input-wrapper {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 18px 25px;
+            border: 2px solid rgba(212, 175, 55, 0.3);
+            border-radius: 30px;
+            background: rgba(255, 255, 255, 0.05);
+            color: #ffffff;
+            font-size: 16px;
+            outline: none;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .chat-input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .chat-input:focus {
+            border-color: #d4af37;
+            background: rgba(255, 255, 255, 0.1);
+            box-shadow: 0 0 25px rgba(212, 175, 55, 0.3);
+        }
+
+        .send-button {
+            width: 60px;
+            height: 60px;
+            border: none;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #d4af37, #b8941f);
+            color: #2c2c2c;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 6px 20px rgba(212, 175, 55, 0.4);
+        }
+
+        .send-button:hover:not(:disabled) {
+            transform: scale(1.05);
+            box-shadow: 0 8px 25px rgba(212, 175, 55, 0.5);
+        }
+
+        .send-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #6b7280;
+            font-style: italic;
+        }
+
+        .loading-dots {
+            display: flex;
+            gap: 4px;
+        }
+
+        .loading-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #d4af37;
+            animation: loadingDots 1.5s infinite ease-in-out;
+        }
+
+        .loading-dot:nth-child(1) { animation-delay: -0.32s; }
+        .loading-dot:nth-child(2) { animation-delay: -0.16s; }
+        .loading-dot:nth-child(3) { animation-delay: 0s; }
+
+        @keyframes loadingDots {
+            0%, 80%, 100% {
+                transform: scale(0.8);
+                opacity: 0.5;
+            }
+            40% {
+                transform: scale(1.2);
+                opacity: 1;
+            }
+        }
+
+        .examples {
+            padding: 25px;
+            background: #ffffff;
+            border-radius: 20px;
+            margin: 20px;
+            border: 1px solid #e5e5e5;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .examples h3 {
+            margin-bottom: 20px;
+            color: #d4af37;
+            font-size: 18px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .example-item {
+            padding: 15px 20px;
+            margin: 10px 0;
+            background: #f8f9fa;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-left: 4px solid #d4af37;
+            color: #2c2c2c;
+            font-weight: 500;
+        }
+
+        .example-item:hover {
+            background: #f1f5f9;
+            transform: translateX(8px);
+            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.2);
+            border-left-width: 6px;
+        }
+
+        .welcome-message {
+            text-align: center;
+            padding: 40px 20px;
+            color: #6b7280;
+        }
+
+        .welcome-message h2 {
+            color: #d4af37;
+            margin-bottom: 15px;
+            font-size: 24px;
+        }
+
+        /* Scrollbar personalizado */
+        ::-webkit-scrollbar {
+            width: 12px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 6px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #d4af37, #b8941f);
+            border-radius: 6px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, #b8941f, #a08419);
+        }
+
+        /* Responsivo */
+        @media (max-width: 768px) {
+            .chat-container {
+                height: 100vh;
+                margin: 0;
+                border-radius: 0;
+            }
+            
+            .message-content {
+                max-width: 90%;
+                padding: 15px 18px;
+            }
+            
+            .chat-input-container {
+                padding: 20px 15px;
+            }
+            
+            .examples {
+                margin: 15px;
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            <div class="status-indicator">
+                <div class="status-dot"></div>
+                Sistema Activo
+            </div>
+            <h1>
+                <div class="cupra-logo"></div>
+                CUPRA Assistant
+            </h1>
+            <p>Tu asistente inteligente especializado en el manual del CUPRA Formentor</p>
+        </div>
+
+        <div class="chat-messages" id="chatMessages">
+            <div class="examples">
+                <h3>
+                    💡 Consultas que puedes hacer:
+                </h3>
+                <div class="example-item" onclick="sendExample('¿Cómo funciona el sistema de luces del CUPRA?')">
+                    ¿Cómo funciona el sistema de luces del CUPRA?
+                </div>
+                <div class="example-item" onclick="sendExample('¿Cómo se usa la climatización?')">
+                    ¿Cómo se usa la climatización?
+                </div>
+                <div class="example-item" onclick="sendExample('¿Qué hacer si aparece una luz de advertencia?')">
+                    ¿Qué hacer si aparece una luz de advertencia?
+                </div>
+            </div>
+        </div>
+
+        <div class="chat-input-container">
+            <div class="chat-input-wrapper">
+                <input 
+                    type="text" 
+                    class="chat-input" 
+                    id="chatInput" 
+                    placeholder="Pregunta sobre tu CUPRA Formentor..."
+                    onkeypress="handleKeyPress(event)"
+                >
+                <button class="send-button" id="sendButton" onclick="sendMessage()">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="22" y1="2" x2="11" y2="13"></line>
+                        <polygon points="22,2 15,22 11,13 2,9"></polygon>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let isProcessing = false;
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter' && !isProcessing) {
+                sendMessage();
+            }
+        }
+
+        function sendExample(text) {
+            if (!isProcessing) {
+                document.getElementById('chatInput').value = text;
+                sendMessage();
+            }
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            
+            if (!message || isProcessing) return;
+
+            // Limpiar input
+            input.value = '';
+            
+            // Agregar mensaje del usuario
+            addMessage('user', message);
+            
+            // Mostrar loading
+            showLoading();
+            
+            // Procesar mensaje
+            processMessage(message);
+        }
+
+        function addMessage(type, content, metadata = null) {
+            const messagesContainer = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}`;
+            
+            let html = `<div class="message-content">${content}</div>`;
+            
+            if (metadata) {
+                html += `<div class="message-metadata">`;
+                
+                // Confianza
+                const confianzaPct = (metadata.confianza * 100).toFixed(1);
+                html += `<div class="confidence-badge">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                    </svg>
+                    ${confianzaPct}% confianza
+                </div>`;
+                
+                // Calidad
+                if (metadata.evaluacion_calidad) {
+                    const score = parseInt(metadata.evaluacion_calidad);
+                    let qualityClass = 'quality-low';
+                    let qualityIcon = '⚠️';
+                    
+                    if (score >= 8) {
+                        qualityClass = 'quality-high';
+                        qualityIcon = '✅';
+                    } else if (score >= 6) {
+                        qualityClass = 'quality-medium';
+                        qualityIcon = '⚡';
+                    }
+                    
+                    html += `<div class="quality-score ${qualityClass}">
+                        ${qualityIcon} ${score}/10 calidad
+                    </div>`;
+                }
+                
+                html += `</div>`;
+                
+                // Fuentes
+                if (metadata.fuentes && metadata.fuentes.length > 0) {
+                    html += `<div class="message-sources">`;
+                    html += `<div class="sources-title">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+                            <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+                        </svg>
+                        Fuentes consultadas del manual:
+                    </div>`;
+                    
+                    metadata.fuentes.forEach((fuente, index) => {
+                        const relevancia = (fuente.similitud * 100).toFixed(1);
+                        html += `<div class="source-item">`;
+                        html += `<div class="source-title">
+                            ${index + 1}. ${fuente.titulo}
+                            ${fuente.subchunk > 0 ? ` (Sección ${fuente.subchunk})` : ''}
+                        </div>`;
+                        html += `<div class="source-relevance">${relevancia}%</div>`;
+                        html += `</div>`;
+                    });
+                    html += `</div>`;
+                }
+            }
+            
+            messageDiv.innerHTML = html;
+            messagesContainer.appendChild(messageDiv);
+            
+            // Scroll al final
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        function showLoading() {
+            const messagesContainer = document.getElementById('chatMessages');
+            const loadingDiv = document.createElement('div');
+            loadingDiv.className = 'message bot';
+            loadingDiv.id = 'loadingMessage';
+            loadingDiv.innerHTML = `
+                <div class="message-content loading">
+                    <span>Analizando tu consulta en el manual CUPRA</span>
+                    <div class="loading-dots">
+                        <div class="loading-dot"></div>
+                        <div class="loading-dot"></div>
+                        <div class="loading-dot"></div>
+                    </div>
+                </div>
+            `;
+            messagesContainer.appendChild(loadingDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        function removeLoading() {
+            const loadingMessage = document.getElementById('loadingMessage');
+            if (loadingMessage) {
+                loadingMessage.remove();
+            }
+        }
+
+        function setProcessingState(processing) {
+            isProcessing = processing;
+            const sendButton = document.getElementById('sendButton');
+            const chatInput = document.getElementById('chatInput');
+            
+            sendButton.disabled = processing;
+            chatInput.disabled = processing;
+            
+            if (processing) {
+                chatInput.placeholder = "Procesando consulta...";
+            } else {
+                chatInput.placeholder = "Pregunta sobre tu CUPRA Formentor...";
+            }
+        }
+
+        async function processMessage(message) {
+            setProcessingState(true);
+            
+            try {
+                // Llamada a la API
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ query: message })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`Error ${response.status}: ${response.statusText}`);
+                }
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    removeLoading();
+                    addMessage('bot', result.respuesta_llm.respuesta, {
+                        confianza: result.respuesta_llm.confianza,
+                        fuentes: result.respuesta_llm.fuentes,
+                        evaluacion_calidad: result.evaluacion_calidad
+                    });
+                } else {
+                    throw new Error(result.message || 'Error desconocido');
+                }
+                
+            } catch (error) {
+                removeLoading();
+                addMessage('bot', `❌ Lo siento, hubo un error procesando tu consulta: ${error.message}`);
+                console.error('Error:', error);
+            } finally {
+                setProcessingState(false);
+            }
+        }
+
+        // Mensaje de bienvenida
+        window.onload = function() {
+            setTimeout(() => {
+                addMessage('bot', '¡Hola! 👋 Soy tu asistente especializado en el CUPRA Formentor. Puedo ayudarte con cualquier pregunta sobre tu vehículo basándome en el manual oficial. Mi conocimiento incluye sistemas de seguridad, funcionamiento, mantenimiento y características técnicas. ¿En qué puedo ayudarte hoy?');
+            }, 1000);
+        };
+    </script>
+</body>
+</html>

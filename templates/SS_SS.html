@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CUPRA Assistant</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: #000000;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Contenedor del iPhone */
+        .iphone-container {
+            width: 375px;
+            height: 812px;
+            background: #1c1c1e;
+            border-radius: 40px;
+            padding: 6px;
+            position: relative;
+            box-shadow: 
+                0 0 0 3px #333,
+                0 0 40px rgba(0, 0, 0, 0.8),
+                inset 0 0 0 1px #444;
+        }
+
+        /* Marco interior del iPhone */
+        .iphone-frame {
+            width: 100%;
+            height: 100%;
+            background: #000;
+            border-radius: 34px;
+            overflow: hidden;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Notch del iPhone */
+        .notch {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 150px;
+            height: 28px;
+            background: #000;
+            border-radius: 0 0 20px 20px;
+            z-index: 20;
+        }
+
+        /* Header oscuro */
+        .app-header {
+            background: #1c1c1e;
+            padding: 50px 20px 20px;
+            text-align: center;
+            color: #ffffff;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* Barra de estado */
+        .status-info {
+            position: absolute;
+            top: 12px;
+            right: 20px;
+            color: #d4af37;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .app-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            color: #d4af37;
+        }
+
+        .cupra-logo {
+            width: 100px;
+            height: 100px;
+            background-image: url('/static/images/logo_cupra.png');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            border-radius: 8px;
+        }
+
+        .app-subtitle {
+            font-size: 14px;
+            color: #8e8e93;
+            font-weight: 400;
+            margin-top: 5px;
+        }
+
+        /* Área de mensajes blanca */
+        .messages-area {
+            flex: 1;
+            background: #ffffff;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .messages-content {
+            flex: 1;
+            padding: 20px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .message {
+            display: flex;
+            align-items: flex-end;
+            gap: 10px;
+            animation: slideUp 0.3s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.user {
+            flex-direction: row-reverse;
+            justify-content: flex-start;
+        }
+
+        .message-bubble {
+            max-width: 80%;
+            padding: 14px 18px;
+            border-radius: 20px;
+            position: relative;
+            word-wrap: break-word;
+            line-height: 1.4;
+            font-size: 16px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+
+        .message.user .message-bubble {
+            background: #d4af37;
+            color: #000;
+            border-bottom-right-radius: 5px;
+            font-weight: 500;
+        }
+
+        .message.bot .message-bubble {
+            background: #f0f0f0;
+            color: #1c1c1e;
+            border-bottom-left-radius: 5px;
+        }
+
+        /* Avatar del bot */
+        .bot-avatar {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #d4af37, #b8941f);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #000;
+            font-weight: bold;
+            font-size: 14px;
+            flex-shrink: 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        /* Metadatos del mensaje */
+        .message-metadata {
+            margin-top: 8px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            justify-content: flex-end;
+        }
+
+        .message.bot .message-metadata {
+            justify-content: flex-start;
+        }
+
+        .metadata-tag {
+            padding: 4px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 600;
+            background: rgba(212, 175, 55, 0.15);
+            color: #b8941f;
+        }
+
+        .confidence-tag {
+            background: rgba(212, 175, 55, 0.15);
+            color: #b8941f;
+        }
+
+        .quality-high { 
+            background: rgba(52, 199, 89, 0.15); 
+            color: #34c759; 
+        }
+        .quality-medium { 
+            background: rgba(255, 149, 0, 0.15); 
+            color: #ff9500; 
+        }
+        .quality-low { 
+            background: rgba(255, 59, 48, 0.15); 
+            color: #ff3b30; 
+        }
+
+        /* Área de fuentes */
+        .message-sources {
+            margin-top: 12px;
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 12px;
+            font-size: 13px;
+        }
+
+        .sources-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #1c1c1e;
+            font-size: 12px;
+        }
+
+        .source-item {
+            padding: 8px 10px;
+            margin: 4px 0;
+            background: #ffffff;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 3px solid #d4af37;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+
+        .source-title {
+            font-weight: 500;
+            color: #1c1c1e;
+            font-size: 11px;
+            flex: 1;
+        }
+
+        .source-relevance {
+            background: rgba(212, 175, 55, 0.2);
+            color: #b8941f;
+            padding: 2px 6px;
+            border-radius: 6px;
+            font-size: 9px;
+            font-weight: 700;
+        }
+
+        /* Indicador de escritura */
+        .typing-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #8e8e93;
+        }
+
+        .typing-dots {
+            display: flex;
+            gap: 4px;
+        }
+
+        .typing-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #8e8e93;
+            animation: typingDots 1.4s infinite ease-in-out;
+        }
+
+        .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+        .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+        .typing-dot:nth-child(3) { animation-delay: 0s; }
+
+        @keyframes typingDots {
+            0%, 80%, 100% {
+                transform: scale(0.8);
+                opacity: 0.5;
+            }
+            40% {
+                transform: scale(1.2);
+                opacity: 1;
+            }
+        }
+
+        /* Footer oscuro con input */
+        .input-area {
+            background: #1c1c1e;
+            padding: 15px 16px 35px;
+            border-top: 1px solid #333;
+        }
+
+        .input-container {
+            display: flex;
+            align-items: flex-end;
+            gap: 10px;
+            background: #2c2c2e;
+            border-radius: 20px;
+            padding: 8px;
+            border: 1px solid #3c3c3e;
+        }
+
+        .message-input {
+            flex: 1;
+            border: none;
+            outline: none;
+            padding: 10px 15px;
+            font-size: 16px;
+            font-family: inherit;
+            background: transparent;
+            color: #ffffff;
+            resize: none;
+            max-height: 100px;
+            min-height: 20px;
+        }
+
+        .message-input::placeholder {
+            color: #8e8e93;
+        }
+
+        .send-button {
+            width: 36px;
+            height: 36px;
+            border: none;
+            border-radius: 18px;
+            background: linear-gradient(135deg, #d4af37, #b8941f);
+            color: #000;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+            box-shadow: 0 2px 8px rgba(212, 175, 55, 0.3);
+        }
+
+        .send-button:hover:not(:disabled) {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(212, 175, 55, 0.4);
+        }
+
+        .send-button:disabled {
+            background: #3c3c3e;
+            color: #8e8e93;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        /* Ejemplos iniciales */
+        .welcome-examples {
+            padding: 30px 20px;
+            text-align: center;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .welcome-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1c1c1e;
+            margin-bottom: 8px;
+        }
+
+        .welcome-subtitle {
+            font-size: 16px;
+            color: #8e8e93;
+            margin-bottom: 30px;
+            line-height: 1.4;
+        }
+
+        .example-item {
+            background: #f8f9fa;
+            padding: 18px 20px;
+            margin: 8px 0;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border-left: 4px solid #d4af37;
+            text-align: left;
+            font-weight: 500;
+            color: #1c1c1e;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            font-size: 15px;
+        }
+
+        .example-item:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            background: #f0f0f0;
+        }
+
+        .example-item:active {
+            transform: translateY(0);
+        }
+
+        /* Barra home indicator */
+        .home-indicator {
+            position: absolute;
+            bottom: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 134px;
+            height: 5px;
+            background: #fff;
+            border-radius: 2.5px;
+            opacity: 0.3;
+        }
+
+        /* Scrollbar personalizado */
+        .messages-area::-webkit-scrollbar {
+            width: 2px;
+        }
+
+        .messages-area::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .messages-area::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 2px;
+        }
+
+        /* Responsivo */
+        @media (max-height: 850px) {
+            .iphone-container {
+                height: 100vh;
+                width: 100vw;
+                border-radius: 0;
+                max-width: 414px;
+                padding: 0;
+            }
+            
+            .iphone-frame {
+                border-radius: 0;
+            }
+            
+            .notch {
+                display: none;
+            }
+            
+            .app-header {
+                padding-top: 20px;
+            }
+        }
+
+        /* Timestamp de mensajes */
+        .message-time {
+            font-size: 12px;
+            color: #8e8e93;
+            text-align: center;
+            margin: 10px 0;
+            font-weight: 400;
+        }
+    </style>
+</head>
+<body>
+    <div class="iphone-container">
+        <div class="notch"></div>
+        
+        <div class="iphone-frame">
+            <!-- Header oscuro -->
+            <div class="app-header">
+                <div class="status-info">9:41</div>
+                <div class="app-title">
+                    <div class="cupra-logo"></div>
+                    CUPRA Assistant
+                </div>
+                <div class="app-subtitle">Tu asistente especializado en CUPRA Formentor</div>
+            </div>
+
+            <!-- Área de mensajes blanca -->
+            <div class="messages-area" id="messagesArea">
+                <div class="messages-content" id="messagesContent">
+                    <div class="welcome-examples">
+                        <div class="welcome-title">¡Hola! 👋</div>
+                        <div class="welcome-subtitle">Pregúntame sobre tu CUPRA Formentor:</div>
+                        
+                        <div class="example-item" onclick="sendExample('¿Cómo funciona el sistema de luces del CUPRA?')">
+                            💡 ¿Cómo funciona el sistema de luces del CUPRA?
+                        </div>
+                        <div class="example-item" onclick="sendExample('¿Cómo se usa la climatización?')">
+                            🌡️ ¿Cómo se usa la climatización?
+                        </div>
+                        <div class="example-item" onclick="sendExample('¿Qué hacer si aparece una luz de advertencia?')">
+                            ⚠️ ¿Qué hacer si aparece una luz de advertencia?
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer oscuro con input -->
+            <div class="input-area">
+                <div class="input-container">
+                    <textarea 
+                        class="message-input" 
+                        id="messageInput" 
+                        placeholder="Pregunta sobre tu CUPRA..."
+                        rows="1"
+                        onkeydown="handleKeyDown(event)"
+                        oninput="adjustTextareaHeight()"
+                    ></textarea>
+                    <button class="send-button" id="sendButton" onclick="sendMessage()">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <line x1="22" y1="2" x2="11" y2="13"></line>
+                            <polygon points="22,2 15,22 11,13 2,9"></polygon>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="home-indicator"></div>
+    </div>
+
+    <script>
+        let isProcessing = false;
+
+        function handleKeyDown(event) {
+            if (event.key === 'Enter' && !event.shiftKey && !isProcessing) {
+                event.preventDefault();
+                sendMessage();
+            }
+        }
+
+        function adjustTextareaHeight() {
+            const textarea = document.getElementById('messageInput');
+            textarea.style.height = 'auto';
+            textarea.style.height = Math.min(textarea.scrollHeight, 100) + 'px';
+        }
+
+        function sendExample(text) {
+            if (!isProcessing) {
+                document.getElementById('messageInput').value = text;
+                sendMessage();
+            }
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+            
+            if (!message || isProcessing) return;
+
+            // Limpiar ejemplos si existen
+            const examples = document.querySelector('.welcome-examples');
+            if (examples) {
+                examples.remove();
+            }
+
+            // Agregar mensaje del usuario
+            addMessage('user', message);
+            
+            // Limpiar input
+            input.value = '';
+            input.style.height = 'auto';
+            
+            // Mostrar indicador de escritura
+            showTypingIndicator();
+            
+            // Procesar mensaje
+            processMessage(message);
+        }
+
+        function addMessage(type, content, metadata = null) {
+            const messagesContent = document.getElementById('messagesContent');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}`;
+            
+            const currentTime = new Date().toLocaleTimeString('es-ES', { 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            });
+
+            let html = '';
+            
+            if (type === 'bot') {
+                html += '<div class="bot-avatar">C</div>';
+            }
+            
+            html += `<div class="message-bubble">${content}`;
+            
+            if (metadata) {
+                html += '<div class="message-metadata">';
+                
+                // Confianza
+                const confianzaPct = (metadata.confianza * 100).toFixed(1);
+                html += `<div class="metadata-tag confidence-tag">${confianzaPct}% confianza</div>`;
+                
+                // Calidad
+                if (metadata.evaluacion_calidad) {
+                    const score = parseInt(metadata.evaluacion_calidad);
+                    let qualityClass = 'quality-low';
+                    let qualityIcon = '⚠️';
+                    
+                    if (score >= 8) {
+                        qualityClass = 'quality-high';
+                        qualityIcon = '✅';
+                    } else if (score >= 6) {
+                        qualityClass = 'quality-medium';
+                        qualityIcon = '⚡';
+                    }
+                    
+                    html += `<div class="metadata-tag ${qualityClass}">${qualityIcon} ${score}/10</div>`;
+                }
+                
+                html += '</div>';
+                
+                // Fuentes
+                if (metadata.fuentes && metadata.fuentes.length > 0) {
+                    html += '<div class="message-sources">';
+                    html += '<div class="sources-title">📚 Fuentes consultadas:</div>';
+                    
+                    metadata.fuentes.forEach((fuente, index) => {
+                        const relevancia = (fuente.similitud * 100).toFixed(1);
+                        html += `<div class="source-item">`;
+                        html += `<div class="source-title">${index + 1}. ${fuente.titulo}${fuente.subchunk > 0 ? ` (Sección ${fuente.subchunk})` : ''}</div>`;
+                        html += `<div class="source-relevance">${relevancia}%</div>`;
+                        html += `</div>`;
+                    });
+                    html += '</div>';
+                }
+            }
+            
+            html += '</div>';
+            
+            messageDiv.innerHTML = html;
+            messagesContent.appendChild(messageDiv);
+            
+            // Agregar timestamp
+            const timeDiv = document.createElement('div');
+            timeDiv.className = 'message-time';
+            timeDiv.textContent = currentTime;
+            messagesContent.appendChild(timeDiv);
+            
+            // Scroll al final
+            const messagesArea = document.getElementById('messagesArea');
+            messagesArea.scrollTop = messagesArea.scrollHeight;
+        }
+
+        function showTypingIndicator() {
+            const messagesContent = document.getElementById('messagesContent');
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'message bot';
+            typingDiv.id = 'typingIndicator';
+            typingDiv.innerHTML = `
+                <div class="bot-avatar">C</div>
+                <div class="message-bubble">
+                    <div class="typing-indicator">
+                        <span>Escribiendo</span>
+                        <div class="typing-dots">
+                            <div class="typing-dot"></div>
+                            <div class="typing-dot"></div>
+                            <div class="typing-dot"></div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            messagesContent.appendChild(typingDiv);
+            
+            const messagesArea = document.getElementById('messagesArea');
+            messagesArea.scrollTop = messagesArea.scrollHeight;
+        }
+
+        function removeTypingIndicator() {
+            const typingIndicator = document.getElementById('typingIndicator');
+            if (typingIndicator) {
+                typingIndicator.remove();
+            }
+        }
+
+        function setProcessingState(processing) {
+            isProcessing = processing;
+            const sendButton = document.getElementById('sendButton');
+            const messageInput = document.getElementById('messageInput');
+            
+            sendButton.disabled = processing;
+            messageInput.disabled = processing;
+            
+            if (processing) {
+                messageInput.placeholder = "Procesando...";
+            } else {
+                messageInput.placeholder = "Pregunta sobre tu CUPRA...";
+            }
+        }
+
+        async function processMessage(message) {
+            setProcessingState(true);
+            
+            try {
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ query: message })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`Error ${response.status}: ${response.statusText}`);
+                }
+                
+                const result = await response.json();
+                
+                removeTypingIndicator();
+                
+                if (result.success) {
+                    addMessage('bot', result.respuesta_llm.respuesta, {
+                        confianza: result.respuesta_llm.confianza,
+                        fuentes: result.respuesta_llm.fuentes,
+                        evaluacion_calidad: result.evaluacion_calidad
+                    });
+                } else {
+                    throw new Error(result.message || 'Error desconocido');
+                }
+                
+            } catch (error) {
+                removeTypingIndicator();
+                addMessage('bot', `❌ Lo siento, hubo un error procesando tu consulta: ${error.message}`);
+                console.error('Error:', error);
+            } finally {
+                setProcessingState(false);
+            }
+        }
+
+        // Actualizar la hora cada minuto
+        function updateTime() {
+            const timeElement = document.querySelector('.status-info');
+            const now = new Date();
+            timeElement.textContent = now.toLocaleTimeString('es-ES', { 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            });
+        }
+
+        // Inicializar
+        setInterval(updateTime, 60000);
+        updateTime();
+    </script>
+</body>
+</html>

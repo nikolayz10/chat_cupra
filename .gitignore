@@ -1,0 +1,114 @@
+# Python / Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Ni idea
+ni_idea
+chamba
+
+# .PY DE LAMBDA 
+# services/backend/src/bronze/lambda_bronze/lambda_bronze.py
+# services/backend/src/silver/lambda_silver/lambda_silver.py
+# services/backend/src/gold/lambda_gold/lambda_gold.py
+
+# Archivos creados y pdf
+services/backend/document
+#bronze
+services/backend/src/bronze/json
+services/backend/src/bronze/s
+#silver
+services/backend/src/silver/clean_json
+services/backend/src/silver/embeddings_json
+services/backend/src/silver/int_silver
+#gold
+services/backend/src/gold/int_gold
+#llm
+services/llm/query
+
+# Virtual environments
+.env
+.venv
+env/
+venv/
+ENV/
+cupra_v/
+
+# IDEs / Editors
+.vscode/
+.idea/
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+.eggs/
+*.egg
+MANIFEST
+develop-eggs/
+downloads/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+.installed.cfg
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+cover/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Logs / Databases
+*.log
+*.sqlite3
+*.sqlite3-journal
+
+# OS
+.DS_Store
+Thumbs.db
+
+# AWS
+.aws/
+
+# Compiled Cython
+cython_debug/
+
+# Tools / Linters
+.ruff_cache/
+.mypy_cache/
+.dmypy.json
+.pytype/
+.pyre/
+
+# Optional: Ignorar PDFs grandes
+# services/backend/src/silver/document/*.pdf
+
+# Ignorar salidas JSON generadas por tu procesamiento
+services/backend/src/silver/json/
+
+Pruebas/
+
+logs/
+
+static/
