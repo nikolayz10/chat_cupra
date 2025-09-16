@@ -5,7 +5,7 @@ from pydantic import BaseModel
 from typing import Dict, Any
 import os
 from datetime import datetime
-from services.backend.src.config import create_rotating_log, log_config
+from services.config import create_rotating_log, log_config
 
 # Importar el pipeline CUPRA
 from services.llm.cupra_rag_pipeline import CupraRAGPipeline
@@ -18,7 +18,8 @@ app = FastAPI(
 )
 
 # Montar archivos estáticos (para chatbot.html)
-app.mount("/static", StaticFiles(directory="static"), name="images/logo_cupra.png")  #revisarlo
+# app.mount("/static", StaticFiles(directory="static"), name="images/logo_cupra.png")  #revisarlo
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 #-----------------------------------------------------------------------------------------------------
 logger = None
@@ -29,10 +30,12 @@ def initialize():
     # Configurar directorio de logs
     log_config.set_logs_folder("./logs")
     log_config.set_log_level("info")
+    guardar_log = False
     
-    # Crear directorio de logs si no existe
-    if not os.path.exists(log_config.logs_folder):
-        os.makedirs(log_config.logs_folder)
+    if guardar_log:
+        # Crear directorio de logs si no existe
+        if not os.path.exists(log_config.logs_folder):
+            os.makedirs(log_config.logs_folder)
     
     # Inicializar logger
     nombreLog = os.path.splitext(os.path.basename(__file__))[0]  # "main"
@@ -41,8 +44,8 @@ def initialize():
     logger = create_rotating_log(
         path=log_path, 
         level=log_config.level_log,
-        enable_log_file=log_config.enable_log_files,
-        enable_json_file=log_config.enable_json_files
+        enable_log_file=guardar_log,
+        enable_json_file=guardar_log
     )
     
     return logger

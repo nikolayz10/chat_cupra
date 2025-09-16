@@ -9,7 +9,7 @@ load_dotenv()
 
 # Configuración
 OPENAI_API_KEY = os.getenv('KEY_OPENAI')
-MODEL_GPT = os.getenv('MODEL_LLM', 'gpt-3.5-turbo')
+MODEL_GPT = os.getenv('MODEL_LLM', 'gpt-4o-mini')
 
 # Configurar cliente OpenAI
 client = OpenAI(api_key=OPENAI_API_KEY)
