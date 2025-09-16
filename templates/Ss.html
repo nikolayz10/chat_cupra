@@ -15,8 +15,11 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #1a1a1a 0%, #2c2c2c 100%);
             height: 100vh;
+            height: 100dvh; /* Para móviles - respeta el viewport dinámico */
             color: #ffffff;
             overflow: hidden;
+            margin: 0;
+            padding: 0;
         }
 
         .chat-container {
@@ -24,10 +27,12 @@
             max-width: 1200px;
             margin: 0 auto;
             height: 100vh;
+            height: 100dvh; /* Para móviles - respeta el viewport dinámico */
             display: flex;
             flex-direction: column;
             background: #ffffff;
             box-shadow: 0 0 50px rgba(212, 175, 55, 0.2);
+            position: relative;
         }
 
         .chat-header {
@@ -96,10 +101,13 @@
 
         .chat-messages {
             flex: 1;
+            min-height: 0; /* Importante para que flex funcione correctamente */
             overflow-y: auto;
+            overflow-x: hidden;
             padding: 20px;
             background: #fafafa;
             scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch; /* Mejor scroll en iOS */
         }
 
         .message {
@@ -261,6 +269,9 @@
             padding: 20px;
             background: linear-gradient(135deg, #2c2c2c 0%, #1a1a1a 100%);
             border-top: 1px solid rgba(212, 175, 55, 0.2);
+            flex-shrink: 0; /* No permite que se comprima */
+            z-index: 100; /* Asegura que esté siempre encima */
+            position: relative;
         }
 
         .chat-input-wrapper {
@@ -416,14 +427,27 @@
 
         /* Responsive - Tablets */
         @media (max-width: 768px) {
+            body {
+                position: fixed;
+                width: 100%;
+                height: 100%;
+            }
+            
             .chat-container {
                 height: 100vh;
+                height: 100dvh;
                 max-width: 100%;
                 border-radius: 0;
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
             }
             
             .chat-header {
                 padding: 15px;
+                flex-shrink: 0;
             }
             
             .status-indicator {
@@ -434,6 +458,8 @@
             
             .chat-messages {
                 padding: 15px;
+                flex: 1;
+                min-height: 0;
             }
             
             .message-content {
@@ -443,6 +469,7 @@
             
             .chat-input-container {
                 padding: 15px;
+                padding-bottom: env(safe-area-inset-bottom, 15px); /* Para iPhones con notch */
             }
             
             .examples {
@@ -453,6 +480,10 @@
 
         /* Responsive - Móviles pequeños */
         @media (max-width: 480px) {
+            .chat-header {
+                padding: 12px;
+            }
+            
             .chat-header h1 {
                 gap: 10px;
             }
@@ -462,9 +493,18 @@
                 height: 50px;
             }
             
+            .chat-messages {
+                padding: 10px;
+            }
+            
             .message-content {
                 max-width: 95%;
                 font-size: 14px;
+            }
+            
+            .chat-input-container {
+                padding: 12px;
+                padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
             }
             
             .chat-input {
@@ -496,11 +536,16 @@
         /* Responsive - Móviles muy pequeños */
         @media (max-width: 360px) {
             .chat-header {
-                padding: 12px;
+                padding: 10px;
             }
             
             .chat-messages {
+                padding: 8px;
+            }
+            
+            .chat-input-container {
                 padding: 10px;
+                padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
             }
             
             .examples {
@@ -511,6 +556,38 @@
             .example-item {
                 padding: 10px 14px;
                 font-size: 13px;
+            }
+        }
+        
+        /* Fix específico para teclado móvil */
+        @supports (-webkit-touch-callout: none) {
+            /* CSS específico para iOS Safari */
+            .chat-container {
+                height: -webkit-fill-available;
+            }
+        }
+        
+        /* Asegurar visibilidad del input cuando el teclado está abierto */
+        @media (max-height: 500px) {
+            .chat-header {
+                padding: 10px;
+            }
+            
+            .chat-header h1 {
+                font-size: 18px;
+            }
+            
+            .cupra-logo {
+                width: 40px;
+                height: 40px;
+            }
+            
+            .chat-header p {
+                display: none; /* Ocultar subtítulo cuando hay poco espacio */
+            }
+            
+            .chat-input-container {
+                padding: 10px;
             }
         }
     </style>
