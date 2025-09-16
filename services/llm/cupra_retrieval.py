@@ -1,9 +1,14 @@
 import os
 import psycopg2
 from psycopg2.extras import RealDictCursor
-from openai import OpenAI
+# from openai import OpenAI
 from typing import List, Dict, Any
 from dotenv import load_dotenv
+
+try:
+    from openai import OpenAI  # opcional: solo si generas embeddings aquí
+except Exception:
+    OpenAI = None  # evita romper el arranque si no está instalado
 
 load_dotenv()
 
@@ -12,15 +17,15 @@ HOST = os.getenv('HOST')
 DBNAME = os.getenv('DBNAME')
 USER = os.getenv('USER')
 PASSWORD = os.getenv('PASSWORD')
-PORT = os.getenv('PORT')
-SSLMODE = os.getenv('SSLMODE')
+PORT = os.getenv('PORT', "5432")
+SSLMODE = os.getenv('SSLMODE', "require")
 
 # Configuración OpenAI
 OPENAI_API_KEY = os.getenv('KEY_OPENAI')
 EMBEDDING_MODEL = os.getenv('MODEL', 'text-embedding-ada-002')
 
 # Configurar cliente OpenAI
-client = OpenAI(api_key=OPENAI_API_KEY)
+_openai_client = OpenAI(api_key=OPENAI_API_KEY)
 
 class CupraRetrieval:
     """Clase para manejo de búsqueda y recuperación en base de datos CUPRA"""
@@ -32,9 +37,10 @@ class CupraRetrieval:
             'user': USER,
             'password': PASSWORD,
             'port': PORT,
-            'sslmode': SSLMODE
+            'sslmode': SSLMODE,
+            "connect_timeout": 5,
         }
-        self._test_connection()
+        # self._test_connection()
     
     def _test_connection(self):
         """Prueba la conexión a la base de datos"""
@@ -50,6 +56,7 @@ class CupraRetrieval:
         """Obtiene una nueva conexión a la base de datos"""
         return psycopg2.connect(**self.connection_params)
     
+    # ---------- Embeddings ----------
     def generar_embedding_query(self, query: str, logger=None) -> List[float]:
         """
         Genera embedding para la consulta del usuario
@@ -62,9 +69,12 @@ class CupraRetrieval:
         """
         if not query or not query.strip():
             return []
+        if _openai_client is None:
+            if logger: logger.error("OpenAI API key ausente o cliente no disponible")
+            return []
         
         try:
-            respuesta = client.embeddings.create(
+            respuesta = _openai_client.embeddings.create(
                 model=EMBEDDING_MODEL,
                 input=query.strip()
             )
@@ -75,6 +85,7 @@ class CupraRetrieval:
             logger.warning(f"❌ Error generando embedding para la query: {e}")
             return []
     
+    # ---------- Búsqueda vectorial ----------
     def buscar_chunks_similares(self, query: str, top_k: int = 4, logger = None) -> List[Dict]:
         """
         Busca los chunks más similares usando búsqueda vectorial coseno
@@ -282,7 +293,12 @@ class CupraRetrieval:
             }
 
 # Instancia global del retriever
-cupra_retriever = CupraRetrieval()
+# cupra_retriever = CupraRetrieval()
+try:
+    cupra_retriever = CupraRetrieval()
+except Exception as e:
+    print(f"[startup] retriever deshabilitado: {e}")
+    cupra_retriever = None
 
 def busqueda_cupra_chunks(query: str, top_k: int = 4, logger=None) -> List[Dict]:
     """
@@ -296,6 +312,10 @@ def busqueda_cupra_chunks(query: str, top_k: int = 4, logger=None) -> List[Dict]
         Lista de chunks relevantes
     """
     try:
+        
+        if cupra_retriever is None:
+            if logger: logger.error("DB no disponible (retriever=None)")
+            return []
         # print(f"🔍 Buscando información para: '{query}'")
         
         # Buscar chunks similares

@@ -19,7 +19,7 @@ app = FastAPI(
 
 # Montar archivos estáticos (para chatbot.html)
 # app.mount("/static", StaticFiles(directory="static"), name="images/logo_cupra.png")  #revisarlo
-app.mount("/static", StaticFiles(directory="static"), name="static")
+# app.mount("/static", StaticFiles(directory="static"), name="static")
 
 #-----------------------------------------------------------------------------------------------------
 logger = None
@@ -171,7 +171,15 @@ async def health_check():
     """
     try:
         # Verificar estado de la base de datos
-        salud_bd = cupra_retriever.verificar_salud_bd()
+        salud_bd = cupra_retriever.verificar_salud_bd() if cupra_retriever else {
+        "pgvector_instalado": False,
+        "tabla_existe": False,
+        "indice_vectorial": False,
+        "conexion_ok": False,
+        "error": "Retriever no disponible al arranque"
+        }
+        
+        # salud_bd = cupra_retriever.verificar_salud_bd()
         
         # Determinar estado general
         status = "ok" if pipeline is not None and salud_bd['conexion_ok'] else "error"
@@ -323,9 +331,10 @@ async def startup_event():
     
     # Mostrar estadísticas iniciales
     try:
-        stats = cupra_retriever.obtener_estadisticas_bd(logger = logger)
+        # stats = cupra_retriever.obtener_estadisticas_bd(logger = logger)
         # print(f"📊 Base de datos: {stats.get('total_chunks', 0)} chunks disponibles")
-        logger.info(f"Base de datos: {stats.get('total_chunks', 0)} chunks disponibles")
+        # logger.info(f"Base de datos: {stats.get('total_chunks', 0)} chunks disponibles")
+        logger.info("Base de datos: creo que iniciada")
     except:
         # print("⚠️ No se pudieron obtener estadísticas de la base de datos")
         logger.warning("⚠️ No se pudieron obtener estadísticas de la base de datos")
