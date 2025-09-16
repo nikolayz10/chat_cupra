@@ -24,7 +24,7 @@
 
         .chat-container {
             width: 100%;
-            max-width: 1200px;
+            max-width: 900px; /* Reducido de 1200px a 900px para mejor lectura en PC */
             margin: 0 auto;
             height: 100vh;
             height: 100dvh; /* Para móviles - respeta el viewport dinámico */
@@ -136,13 +136,55 @@
 
         .message-content {
             display: inline-block;
-            max-width: min(85%, 800px);
+            max-width: min(85%, 600px); /* Máximo 600px para mejor legibilidad */
             padding: 15px 20px;
             border-radius: 20px;
             word-wrap: break-word;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-            line-height: 1.6;
+            line-height: 1.7; /* Mejor espaciado entre líneas */
             font-size: clamp(14px, 2vw, 16px);
+            white-space: pre-wrap; /* Respeta los saltos de línea */
+        }
+
+        /* Estilos mejorados para el contenido del bot */
+        .message.bot .message-content {
+            background: #ffffff;
+            border-bottom-left-radius: 8px;
+            border: 1px solid #e5e5e5;
+            color: #2c2c2c;
+            position: relative;
+            text-align: left;
+        }
+
+        /* Estilos para listas dentro de los mensajes */
+        .message-content ul,
+        .message-content ol {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+
+        .message-content li {
+            margin: 8px 0;
+            line-height: 1.6;
+        }
+
+        /* Estilos para elementos en negrita */
+        .message-content strong {
+            color: #1a1a1a;
+            font-weight: 600;
+        }
+
+        /* Estilos para párrafos */
+        .message-content p {
+            margin: 10px 0;
+        }
+
+        /* Estilos para secciones numeradas */
+        .message-content h4 {
+            color: #d4af37;
+            margin: 15px 0 10px 0;
+            font-size: 16px;
+            font-weight: 600;
         }
 
         .message.user .message-content {
@@ -278,7 +320,7 @@
             display: flex;
             gap: 10px;
             align-items: center;
-            max-width: 1000px;
+            max-width: 800px; /* Reducido para consistencia */
             margin: 0 auto;
         }
 
@@ -677,12 +719,46 @@
             processMessage(message);
         }
 
+        function formatMessageContent(content) {
+            // Mejorar el formato del contenido
+            let formatted = content;
+            
+            // Convertir ** en etiquetas strong para negrita
+            formatted = formatted.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+            
+            // Convertir listas numeradas con puntos a formato mejorado
+            formatted = formatted.replace(/(\d+)\.\s\*\*/g, '<br><strong>$1.</strong> <strong>');
+            
+            // Asegurar saltos de línea después de dos puntos en títulos
+            formatted = formatted.replace(/:\s*\n/g, ':<br><br>');
+            
+            // Convertir guiones al inicio de línea en bullets
+            formatted = formatted.replace(/\n\s*-\s+/g, '<br>• ');
+            
+            // Convertir saltos de línea dobles en párrafos
+            formatted = formatted.replace(/\n\n/g, '<br><br>');
+            
+            // Convertir saltos de línea simples
+            formatted = formatted.replace(/\n/g, '<br>');
+            
+            // Agregar emojis para secciones especiales
+            formatted = formatted.replace(/\*\*Precauciones?\*\*/gi, '⚠️ <strong>Precauciones</strong>');
+            formatted = formatted.replace(/\*\*Importante\*\*/gi, '❗ <strong>Importante</strong>');
+            formatted = formatted.replace(/\*\*Nota\*\*/gi, '📌 <strong>Nota</strong>');
+            formatted = formatted.replace(/\*\*Advertencia\*\*/gi, '⚠️ <strong>Advertencia</strong>');
+            
+            return formatted;
+        }
+
         function addMessage(type, content, metadata = null) {
             const messagesContainer = document.getElementById('chatMessages');
             const messageDiv = document.createElement('div');
             messageDiv.className = `message ${type}`;
             
-            let html = `<div class="message-content">${content}</div>`;
+            // Formatear el contenido si es un mensaje del bot
+            const formattedContent = type === 'bot' ? formatMessageContent(content) : content;
+            
+            let html = `<div class="message-content">${formattedContent}</div>`;
             
             if (metadata) {
                 html += `<div class="message-metadata">`;

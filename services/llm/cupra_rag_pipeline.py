@@ -244,13 +244,45 @@ INFORMACIÓN DEL MANUAL CUPRA:
 CONSULTA DEL USUARIO:
 {query}
 
-INSTRUCCIONES:
+INSTRUCCIONES DE FORMATO Y CONTENIDO:
 1. Responde ÚNICAMENTE basándote en la información proporcionada del manual
-2. Si la información no es suficiente para responder completamente, indícalo claramente
-3. Sé específico y detallado, usando términos técnicos cuando sea apropiado
-4. Mantén un tono profesional pero accesible para el usuario
-5. Si mencionas procedimientos, sé claro en los pasos
-6. Si hay información contradictoria, menciónalo
+2. IMPORTANTE - Estructura tu respuesta de forma clara y legible:
+   - Usa SALTOS DE LÍNEA entre secciones principales
+   - Para pasos numerados, pon cada paso en una nueva línea
+   - Separa claramente las secciones (ej: pasos principales, condiciones, precauciones)
+   - Usa **negrita** para títulos de secciones importantes
+   - Deja una línea en blanco entre párrafos diferentes
+3. Si hay procedimientos paso a paso:
+   - Numera cada paso principal (1., 2., 3., etc.)
+   - Los sub-pasos van con guiones (-)
+   - Cada paso en su propia línea
+4. Agrupa la información en secciones lógicas como:
+   - Pasos principales
+   - Condiciones importantes
+   - Precauciones o advertencias
+   - Información adicional
+5. Mantén un tono profesional pero accesible
+6. Si la información no es suficiente, indícalo claramente al final
+
+FORMATO DE EJEMPLO para respuestas con pasos:
+
+**Título de la función**
+
+**Pasos principales:**
+
+1. **Primer paso**
+   - Detalle del paso
+   - Otro detalle si es necesario
+
+2. **Segundo paso**
+   - Explicación clara
+
+**Condiciones importantes:**
+- Primera condición
+- Segunda condición
+
+**Precauciones:**
+⚠️ Advertencia importante
 
 RESPUESTA:"""
         
