@@ -112,10 +112,23 @@ async def chat_endpoint(request: ChatRequest):
     """
     try:
         # Verificar que el pipeline esté disponible
+        # if pipeline is None:
+        #     raise HTTPException(
+        #         status_code=500, 
+        #         detail="Pipeline no disponible - Error en la inicialización del sistema"
+        #     )
         if pipeline is None:
-            raise HTTPException(
-                status_code=500, 
-                detail="Pipeline no disponible - Error en la inicialización del sistema"
+            return JSONResponse(
+                status_code=503,
+                content={
+                    "success": False,
+                    "query": request.query,
+                    "respuesta_llm": {"respuesta": "Servicio en modo degradado (DB no disponible).", "confianza": 0.0, "fuentes": []},
+                    "evaluacion_calidad": "5",
+                    "chunks_recuperados": 0,
+                    "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    "fuente": "PostgreSQL"
+                }
             )
 
         # Validar consulta
