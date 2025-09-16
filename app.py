@@ -17,10 +17,8 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# Montar archivos estáticos (para chatbot.html)
-# app.mount("/static", StaticFiles(directory="static"), name="images/logo_cupra.png")  #revisarlo
-# app.mount("/static", StaticFiles(directory="static"), name="static")
-
+# Montar archivos estáticos correctamente
+app.mount("/static", StaticFiles(directory="static"), name="static")
 #-----------------------------------------------------------------------------------------------------
 logger = None
 
